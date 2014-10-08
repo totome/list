@@ -1,1 +1,1 @@
-plik bez znaczenia
+plik bez znaczenia. Teraz dodajemy cos na _2;
