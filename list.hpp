@@ -7,9 +7,56 @@ namespace lst
   class List
   {
   public:
-    List(T t);
+    List();
     ~List();
+    void push_back(const T &);
+    void push_back(T &&);
+    
+    void push_front(const T &);
+    void push_front(T &&);
+    
+    void insert(const T &);
+    void insert(T &&);
+    
+  private:
+    
   };
+  
+  template <typename T>
+  void List<T>::push_back(const T & value)
+  {
+    
+  }
+  
+  template <typename T>
+  void List<T>::push_back(T && rvalue)
+  {
+    
+  }
+  
+  template <typename T>
+  void List<T>::push_front(const T & value)
+  {
+    
+  }
+  
+  template <typename T>
+  void List<T>::push_front(T && rvalue)
+  {
+    
+  }
+  
+  template <typename T>
+  void List<T>::insert(const T & value)
+  {
+    
+  }
+  
+  template <typename T>
+  void List<T>::insert(T && rvalue)
+  {
+    
+  }
   
   template <typename T>
   class Elem

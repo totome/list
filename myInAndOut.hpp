@@ -23,7 +23,7 @@ namespace myio
   template <typename T>
   auto write(const std::vector<T> & v)-> void
   {
-    for(auto x : v)std::cout<<x;
+    for(auto element : v)std::cout<<element;
   }
 }
 
