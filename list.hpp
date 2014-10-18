@@ -16,6 +16,41 @@ private:
     };
 
 public:
+
+    class iterator
+    {
+    public:
+        iterator() : _previous(nullptr), _now_on(nullptr)
+        {
+
+        }
+
+        node & operator*()
+        {
+            return *_now_on;
+        }
+
+        node * operator->()
+        {
+            return _now_on;
+        }
+
+        iterator operator++()
+        {
+            _previous=_now_on;
+            _now_on=_now_on->_next;
+            return this;//pre
+        }
+
+        iterator operator++(int)
+        {
+            //post
+        }
+    private:
+        node * _previous;
+        node * _now_on;
+    };
+
     list() : _head(nullptr), _size(0) {}
     const int & size() const;
     auto is_empty() const -> bool;
@@ -76,7 +111,7 @@ auto list<Value>::pop_front(void) -> Value
     }
     else
     {
-        throw
+        //throw
     }
 }
 
@@ -100,7 +135,7 @@ auto list<Value>::push_back(Value v) -> void
             tmp = tmp->next;
         }
 
-        _tmp->next = new node(v);
+        tmp->next = new node(v);
     }
     _size++;
 }
@@ -123,7 +158,7 @@ auto list<Value>::pop_back(void) -> Value
     }
     else
     {
-        throw
+        //throw
     }
 }
 
