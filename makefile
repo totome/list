@@ -7,7 +7,7 @@ all: main.o  list.o myInAndOut.o
 	g++ main.o list.o -o list
 
 test: list.o
-	g++ -isystem ${GTEST_DIR}/include -isystem ${GMOCK_DIR}/include -pthread test.cpp ${GMOCK_DIR}/../libgmock.a -o list
+	g++ $(CXXFLAGS) -isystem ${GTEST_DIR}/include -isystem ${GMOCK_DIR}/include -pthread test.cpp ${GMOCK_DIR}/../libgmock.a -o list
 
 
 main.o: main.cpp
