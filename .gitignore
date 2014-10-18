@@ -1,6 +1,12 @@
 .kdev4
 list.kdev4
-
+list
+list.config
+list.creator
+list.creator.user
+list.files
+list.includes
+list.o
 
 
 
