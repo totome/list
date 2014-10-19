@@ -32,7 +32,7 @@ class FooTest : public ::testing::Test {
     // before the destructor).
   }
 
-    list<int> mylist;
+    list<double> mylist;
   // Objects declared here can be used by all tests in the test case for Foo.
 };
 
@@ -150,10 +150,96 @@ TEST_F(FooTest, PopBackAndPushFrontkWorksProperly)
 
 }
 
+TEST_F(FooTest, joinTail)
+{
+    double received;
+    list<double> resultList;
+    list<double> listToJoin;
+    resultList.push_back(21);
+    resultList.push_back(22);
+    resultList.push_back(23);
+    resultList.push_front(20);
+
+    listToJoin.push_front(24);
+    listToJoin.push_back(25);
+
+    resultList.join_tail(std::move(listToJoin));
+
+    EXPECT_EQ(6, resultList.size());
+    EXPECT_EQ(0, listToJoin.size());
+
+    received = resultList.pop_back();
+    EXPECT_EQ(25, received);
+
+    received = resultList.pop_back();
+    EXPECT_EQ(24, received);
+
+    received = resultList.pop_back();
+    EXPECT_EQ(23, received);
+    received = resultList.pop_back();
+    EXPECT_EQ(22, received);
+}
+
 TEST_F(FooTest, detach_head)
 {
+    double received;
+    list<double> resultList;
+    list<double> listToJoin;
+    resultList.push_back(21);
+    resultList.push_back(22);
+    resultList.push_back(23);
+    resultList.push_front(20);
 
+    listToJoin.push_front(24);
+    listToJoin.push_back(25);
+
+    resultList.join_tail(std::move(listToJoin.detach_head()));
+    resultList.join_tail(std::move(listToJoin.detach_head()));
+
+    EXPECT_EQ(6, resultList.size());
+    EXPECT_EQ(0, listToJoin.size());
+
+    received = resultList.pop_back();
+    EXPECT_EQ(25, received);
+
+    received = resultList.pop_back();
+    EXPECT_EQ(24, received);
+
+    received = resultList.pop_back();
+    EXPECT_EQ(23, received);
+    received = resultList.pop_back();
+    EXPECT_EQ(22, received);
 }
+
+TEST_F(FooTest, detach_half)
+{
+    double received;
+    mylist.push_back(21);
+    mylist.push_back(22);
+    mylist.push_back(23);
+    mylist.push_front(20);
+    mylist.push_back(24);
+    //mylist.push_back(25);
+
+    list<double> resultList = mylist.detach_half();
+
+    EXPECT_EQ(3, resultList.size());
+    EXPECT_EQ(2, mylist.size());
+
+    received = resultList.pop_back();
+    EXPECT_EQ(24, received);
+
+    received = resultList.pop_back();
+    EXPECT_EQ(23, received);
+
+    received = resultList.pop_front();
+    EXPECT_EQ(22, received);
+
+    EXPECT_EQ(true, resultList.is_empty());
+}
+
+
+
 
 }  // namespace
 
