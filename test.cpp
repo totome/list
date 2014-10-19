@@ -69,31 +69,90 @@ TEST_F(FooTest, PopFrontAndPushFrontWorksProperly)
 
     EXPECT_EQ(given, received);
 
-    given++;
+    given=11;
     mylist.push_front(given);
-    given++;
+    given=12;
     mylist.push_front(given);
-    given++;
+    given=13;
     mylist.push_front(given);
+
     EXPECT_EQ(3, mylist.size());
 
     received = mylist.pop_front();
-    EXPECT_EQ(given, received);
+    EXPECT_EQ(13, received);
     EXPECT_EQ(2, mylist.size());
 
     received = mylist.pop_front();
-    EXPECT_EQ(given, received);
+    EXPECT_EQ(12, received);
     EXPECT_EQ(1, mylist.size());
 }
 
 
-TEST_F(FooTest, PopFrontAndPushFrontWorksProperly2)
+TEST_F(FooTest, PopBackAndPushBackWorksProperly)
 {
+    int received = -1;
     int given=10;
-    int received = 11;
 
+    mylist.push_back(given);
+    received = mylist.pop_back();
+
+    EXPECT_EQ(given, received);
+
+    given=11;
+    mylist.push_back(given);
+    given=12;
+    mylist.push_back(given);
+    given=13;
+    mylist.push_back(given);
+
+    EXPECT_EQ(3, mylist.size());
+
+    received = mylist.pop_back();
+    EXPECT_EQ(13, received);
+    EXPECT_EQ(2, mylist.size());
+
+    received = mylist.pop_back();
+    EXPECT_EQ(12, received);
+    EXPECT_EQ(1, mylist.size());
+}
+
+TEST_F(FooTest, PopBackAndPushFrontkWorksProperly)
+{
+    int received = -1;
+
+    int given=10;
     mylist.push_front(given);
-    received = mylist.pop_front();
+    given=11;
+    mylist.push_front(given);
+    given=12;
+    mylist.push_front(given);
+    given=13;
+    mylist.push_front(given);
+
+    EXPECT_EQ(4, mylist.size());
+
+    received = mylist.pop_back();
+    EXPECT_EQ(10, received);
+    EXPECT_EQ(3, mylist.size());
+
+    received = mylist.pop_back();
+    EXPECT_EQ(11, received);
+    EXPECT_EQ(2, mylist.size());
+
+    received = mylist.pop_back();
+    EXPECT_EQ(12, received);
+    EXPECT_EQ(1, mylist.size());
+
+    received = mylist.pop_back();
+    EXPECT_EQ(13, received);
+    EXPECT_EQ(0, mylist.size());
+    EXPECT_EQ(true, mylist.is_empty());
+
+}
+
+TEST_F(FooTest, detach_head)
+{
+
 }
 
 }  // namespace
