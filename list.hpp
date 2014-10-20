@@ -1,6 +1,7 @@
 #ifndef LIST_HPP
 #define LIST_HPP
 #include <iostream>
+#include <exception>
 
 template<typename Value>
 class list
@@ -190,7 +191,7 @@ auto list<Value>::pop_front(void) -> Value
 {
     if(this->is_empty())
     {
-        //throw
+        throw std::exception();
     }
     else
     {
@@ -236,7 +237,7 @@ auto list<Value>::pop_back(void) -> Value
 {
     if(this->is_empty())
     {
-        //throw
+        throw std::exception();
     }
     else
     {
@@ -298,7 +299,7 @@ auto list<Value>::detach_head() -> list<Value>
 
     if(this->is_empty())
     {
-        //throw
+        return list();
     }
     else
     {
@@ -329,54 +330,7 @@ auto list<Value>::detach_half() -> list<Value>
 
     int tmpsize= _size;
 
-    if(this->is_empty())
-    {
-        //throw
-    }
-    else
-    {
-        if(this->size()==1)
-        {
-             tmp=_head;
-            _head=nullptr;
-            _tail=nullptr;
-            return std::move(list(tmp));
-        }
-        else
-        {
-            prevtmp=_head;
-            tmp=_head->_next;
-
-            int half = size()/2;
-
-            for(int i=1; i<half; ++i)
-            {
-                tmp=tmp->_next;
-                prevtmp=prevtmp->_next;
-            }
-
-
-            tmptail=_tail;
-
-            _tail=prevtmp;
-            _tail->_next=nullptr;
-            _size=half;
-
-            return list(tmp, tmptail, tmpsize-half);
-        }
-    }
-}
-/*
-template<typename Value>
-auto list<Value>::detach_half() -> list<Value>
-{
-    node * tmp;
-    node * prevtmp;
-    node * tmptail;
-
-    int tmpsize= _size;
-
-    if(is_empty() || size()==1)
+    if(this->is_empty() || this->size()==1)
     {
         return list();
     }
@@ -388,18 +342,28 @@ auto list<Value>::detach_half() -> list<Value>
 
         return list(tmp);
     }
-    else if(size()==3)
+    else
     {
-        _head->_next->_next=nullptr;
-        tmp=_tail;
-        _tail=nullptr;
-        return std::move(list(tmp));
-    }
-    else if(size()==4)
-    {
-       //
-    }
-}*/
-//---------------------------------------
+        prevtmp=_head;
+        tmp=_head->_next;
+
+        int half = size()%2 + size()/2;
+
+        for(int i=1; i<half; ++i)
+        {
+            tmp=tmp->_next;
+            prevtmp=prevtmp->_next;
+        }
+
+
+        tmptail=_tail;
+
+        _tail=prevtmp;
+        _tail->_next=nullptr;
+        _size=half;
+
+        return list(tmp, tmptail, tmpsize-half);
+     }
+}
 
 #endif //LIST_HPP

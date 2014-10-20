@@ -237,8 +237,6 @@ TEST_F(FooTest, detach_half)
     received =resultList.pop_front();
     EXPECT_EQ(23, received);
 
-    //received = resultList.pop_front();
-    //EXPECT_EQ(22, received);
 
     EXPECT_EQ(true, resultList.is_empty());
 }
@@ -252,23 +250,71 @@ auto merge_sort(list<T> && l1)-> list<T>
     }
     else if(l1.size()==2)
     {
-       T tmp1=l1.pop_back();
-       T tmp2=l1.pop_back();
-       if(tmp1>tmp2)
-       {
-           l1.push_back(tmp2);
-           l1.push_back(tmp1);
-       }
-       else
-       {
-           l1.push_back(tmp1);
-           l1.push_back(tmp2);
-       }
+        if( *(l1.begin()) > *(l1.last_elem()))
+        {
+            list<T> l(l1.detach_head());
+            l1.join_tail(std::move(l));
+        }
 
        return std::move(l1);
     }
-    else
+    else if(l1.size()==3)
     {
+        list<T> l0 = l1.detach_head();
+        list<T> l2 = l1.detach_head();
+
+
+        if(*(l0.begin()) > *(l1.begin()))
+        {
+                if(*(l0.begin())>*(l2.begin()))
+                {
+                    if(*(l1.begin())>*(l2.begin()))
+                    {
+                        l2.join_tail(std::move(l1));
+                        l2.join_tail(std::move(l0));
+                        return std::move(l2);
+                    }
+                    else
+                    {
+                        l1.join_tail(std::move(l2));
+                        l1.join_tail(std::move(l0));
+                        return std::move(l1);
+                    }
+                }
+                else
+                {
+                    l1.join_tail(std::move(l0));
+                    l1.join_tail(std::move(l2));
+                    return std::move(l1);
+                }
+        }
+        else
+        {
+            if(*(l0.begin()) > *(l2.begin()))
+            {
+                l2.join_tail(std::move(l0));
+                l2.join_tail(std::move(l1));
+                return std::move(l2);
+            }
+            else
+            {
+                if(*(l1.begin())>*(l2.begin()))
+                {
+                    l0.join_tail(std::move(l2));
+                    l0.join_tail(std::move(l1));
+                    return std::move(l0);
+                }
+                else
+                {
+                    l0.join_tail(std::move(l1));
+                    l0.join_tail(std::move(l2));
+                    return std::move(l0);
+                }
+            }
+        }
+     }
+     else
+     {
         list<T> l2(l1.detach_half());
         list<T> result;
 
@@ -319,20 +365,24 @@ TEST_F(FooTest, merge_sortTwoElems)
     EXPECT_EQ(1, 1);
 }
 
-TEST_F(FooTest, merge_sortFiveElems)
+TEST_F(FooTest, merge_sortElevenElems)
 {
     double received;
+    mylist.push_back(0);
+    mylist.push_back(111);
     mylist.push_back(21);
     mylist.push_back(22);
     mylist.push_back(23);
     mylist.push_back(24);
+    mylist.push_back(0);
     mylist.push_back(29);
+    mylist.push_back(111);
     mylist.push_back(26);
     mylist.push_back(20);
 
     mylist = merge_sort(std::move(mylist));
 
-    EXPECT_EQ(7, mylist.size());
+    EXPECT_EQ(11, mylist.size());
 
     while(not mylist.is_empty())
     {
