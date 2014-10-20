@@ -4,16 +4,23 @@
 #include "list.hpp"
 
 
-int main(int argc, char **argv)
+int main()
 {
- // std::vector<double> v;
- // v = myio::read<double>();
- // myio::write<double>(v);
-  std::cout<<"!!!!!!!!!!!!!!!!\n";
-  lst::List<double> l;
-  std::cout<<std::endl<<"!!!!!!!!!!!!!!!!\n"<<std::endl;
-  l.push_back(15);
-  std::cout<<std::endl<<"!!!!!!!!!!!!!!!!\n"<<std::endl;
-  std::cout<<"Elelm : "<<l.pop_back()<<std::endl;
-  return 0;
+    double tmp;
+    list<double> l;
+
+    while(std::cin)
+    {
+        std::cin>>tmp;
+        l.push_back(tmp);
+    }
+    l.pop_back();
+
+    l = merge_sort(std::move(l));
+
+    while(!l.is_empty())
+    {
+        std::cout<<l.pop_front()<<std::endl;
+    }
+    return 0;
 }
