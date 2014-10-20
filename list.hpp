@@ -26,42 +26,40 @@ public:
     {
     public:
         iterator(const iterator & other)
-            : _previous(other._previous),
-              _current(other._current)
-        {
+             : _current(other._current)    {}
 
-        }
+        iterator(node * now)
+             : _current(now)    {}
 
-        iterator(node * prev, node * now)
-            : _previous(prev),
-              _current(now)
+        Value & operator*()
         {
-
-        }
-        node & operator*()
-        {
-            return *_current;
-        }
-
-        node * operator->()
-        {
-            return _current;
+            return _current->_value;
         }
 
         iterator operator++()
         {
-            _previous=_current;
             _current=_current->_next;
-            return this;//pre
+            return *this;
         }
 
         iterator operator++(int)
         {
-            //post
+            auto tmp =*this;
+            _current=_current->_next;
+            return tmp;
+        }
+
+        bool operator==(iterator other)
+        {
+            return *this==other;
+        }
+
+        bool operator!=(iterator other)
+        {
+            return *this!=other;
         }
 
     private:
-        node * _previous;
         node * _current;
     };
 
@@ -106,6 +104,9 @@ public:
 
     ~list()
     {
+        _tail=nullptr;
+        _size=0;
+
         if(_head)
             delete _head;
     }
@@ -120,7 +121,10 @@ public:
     auto pop_back(void)  -> Value;
 
     auto begin() -> iterator;
+    auto last_elem() -> iterator;
     auto end() -> iterator;
+
+
     auto join_tail(list<Value> &&) -> void;
     auto detach_head() -> list<Value>;
     auto detach_half() -> list<Value>;
@@ -134,13 +138,19 @@ private:
 template<typename Value>
 auto list<Value>::begin() -> list<Value>::iterator
 {
-    return list<Value>::iterator(nullptr, _head);
+    return list<Value>::iterator(_head);
+}
+
+template<typename Value>
+auto list<Value>::last_elem() -> list<Value>::iterator
+{
+    return list<Value>::iterator(_tail);
 }
 
 template<typename Value>
 auto list<Value>::end() -> list<Value>::iterator
 {
-    return list<Value>::iterator(_tail, nullptr);
+    return list<Value>::iterator(nullptr);
 }
 
 //---info abou list capacity---------
@@ -264,12 +274,20 @@ auto list<Value>::pop_back(void) -> Value
 template<typename Value>
 auto list<Value>::join_tail(list<Value> && other) -> void
 {
-    this->_tail->_next = other._head;
-    this->_tail = other._tail;
-    this->_size += other.size();
+    if(is_empty())
+    {
+        _head=other._head;
+    }
+    else
+    {
+        _tail->_next = other._head;
+    }
 
-    other._size=0;
+    _tail = other._tail;
+    _size += other.size();
+
     other._tail=nullptr;
+    other._size=0;
     other._head=nullptr;
 }
 
@@ -308,6 +326,7 @@ auto list<Value>::detach_half() -> list<Value>
     node * tmp;
     node * prevtmp;
     node * tmptail;
+
     int tmpsize= _size;
 
     if(this->is_empty())
@@ -336,18 +355,51 @@ auto list<Value>::detach_half() -> list<Value>
                 prevtmp=prevtmp->_next;
             }
 
-            prevtmp->_next=nullptr;
 
             tmptail=_tail;
+
             _tail=prevtmp;
+            _tail->_next=nullptr;
             _size=half;
 
             return list(tmp, tmptail, tmpsize-half);
         }
     }
 }
+/*
+template<typename Value>
+auto list<Value>::detach_half() -> list<Value>
+{
+    node * tmp;
+    node * prevtmp;
+    node * tmptail;
 
+    int tmpsize= _size;
 
+    if(is_empty() || size()==1)
+    {
+        return list();
+    }
+    else if(size()==2)
+    {
+        _head->_next=nullptr;
+        tmp=_tail;
+        _tail=nullptr;
+
+        return list(tmp);
+    }
+    else if(size()==3)
+    {
+        _head->_next->_next=nullptr;
+        tmp=_tail;
+        _tail=nullptr;
+        return std::move(list(tmp));
+    }
+    else if(size()==4)
+    {
+       //
+    }
+}*/
 //---------------------------------------
 
 #endif //LIST_HPP

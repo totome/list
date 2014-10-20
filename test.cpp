@@ -219,27 +219,136 @@ TEST_F(FooTest, detach_half)
     mylist.push_back(23);
     mylist.push_front(20);
     mylist.push_back(24);
-    //mylist.push_back(25);
+    mylist.push_back(25);
 
-    list<double> resultList = mylist.detach_half();
+    list<double> resultList;
+
+    resultList.join_tail(std::move(mylist.detach_half()));
 
     EXPECT_EQ(3, resultList.size());
-    EXPECT_EQ(2, mylist.size());
+    EXPECT_EQ(3, mylist.size());
+
+    received = resultList.pop_back();
+    EXPECT_EQ(25, received);
 
     received = resultList.pop_back();
     EXPECT_EQ(24, received);
 
-    received = resultList.pop_back();
+    received =resultList.pop_front();
     EXPECT_EQ(23, received);
 
-    received = resultList.pop_front();
-    EXPECT_EQ(22, received);
+    //received = resultList.pop_front();
+    //EXPECT_EQ(22, received);
 
     EXPECT_EQ(true, resultList.is_empty());
 }
 
+template<typename T>
+auto merge_sort(list<T> && l1)-> list<T>
+{
+    if(l1.size()==1)
+    {
+        return std::move(l1);
+    }
+    else if(l1.size()==2)
+    {
+       T tmp1=l1.pop_back();
+       T tmp2=l1.pop_back();
+       if(tmp1>tmp2)
+       {
+           l1.push_back(tmp2);
+           l1.push_back(tmp1);
+       }
+       else
+       {
+           l1.push_back(tmp1);
+           l1.push_back(tmp2);
+       }
+
+       return std::move(l1);
+    }
+    else
+    {
+        list<T> l2(l1.detach_half());
+        list<T> result;
+
+        l1 = merge_sort(std::move(l1));
+        l2 = merge_sort(std::move(l2));
+
+        while(!l1.is_empty() && !l2.is_empty())
+        {
+            if(*(l1.begin()) < *(l2.begin()))
+            {
+                result.join_tail(std::move(l1.detach_head()));
+            }
+            else
+            {
+                result.join_tail(std::move(l2.detach_head()));
+            }
+        }
+
+        if(not l1.is_empty())
+        {
+            result.join_tail(std::move(l1));
+        }
+
+        if(not l2.is_empty())
+        {
+            result.join_tail(std::move(l2));
+        }
+        return std::move(result);
+    }
+}
+
+TEST_F(FooTest, merge_sortTwoElems)
+{
+    double received;
+    mylist.push_back(22);
+    mylist.push_back(21);
+
+    mylist = merge_sort(std::move(mylist));
 
 
+    EXPECT_EQ(2, mylist.size());
+    received = mylist.pop_front();
+    EXPECT_EQ(21, received);
+    received = mylist.pop_front();
+    EXPECT_EQ(22, received);
+
+
+    EXPECT_EQ(1, 1);
+}
+
+TEST_F(FooTest, merge_sortFiveElems)
+{
+    double received;
+    mylist.push_back(21);
+    mylist.push_back(22);
+    mylist.push_back(23);
+    mylist.push_back(24);
+    mylist.push_back(29);
+    mylist.push_back(26);
+    mylist.push_back(20);
+
+    mylist = merge_sort(std::move(mylist));
+
+    EXPECT_EQ(7, mylist.size());
+
+    while(not mylist.is_empty())
+    {
+        std::cout<<mylist.pop_front()<<", ";
+    }
+    //received = mylist.pop_front();
+    //EXPECT_EQ(21, received);
+    //received = mylist.pop_front();
+    //EXPECT_EQ(22, received);
+    //received = mylist.pop_front();
+    //EXPECT_EQ(23, received);
+    //received = mylist.pop_front();
+    //EXPECT_EQ(24, received);
+    //received = mylist.pop_front();
+    //EXPECT_EQ(25, received);
+}
 
 }  // namespace
 
