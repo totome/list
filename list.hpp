@@ -10,10 +10,15 @@ private:
     struct node
     {
         node * _next;
+        node * _prev;
         Value _value;
-        node() : _next(nullptr) {}
-        explicit node(Value v) : _next(nullptr), _value(v) {}
-        node(node * ptr, Value v) : _next(ptr), _value(v) {}
+
+        node() : _next(nullptr), _prev(nullptr) {}
+
+        explicit node(Value v) : _prev(p), _next(nullptr), _value(v) {}
+
+        node(node * p, node * n, Value v) : _prev(p), _next(n), _value(v) {}
+
         ~node()
         {
             if(_next)
@@ -181,7 +186,7 @@ auto list<Value>::push_front(Value v) -> void
     }
     else
     {
-        _head = new node(_head, v);
+        _head = new node(nullptr, _head, v);
     }
     ++_size;
 }
@@ -286,6 +291,56 @@ auto list<Value>::join_tail(list<Value> && other) -> void
 
     _tail = other._tail;
     _size += other.size();
+
+    other._tail=nullptr;
+    other._size=0;
+    other._head=nullptr;
+}
+
+//------FRONT :--------------------------------------------------
+
+template<typename Value>
+auto list<Value>::join_front(list<Value> && other) -> void
+{
+    if(is_empty())
+    {
+        _head= other._head;
+        _tail= other._tail;
+        _size= other._size;
+    }
+    else
+    {
+        other._tail->_next = _head;
+        _head->_prev = other.tail;
+        _head = other._head;
+
+       _size += other.size();
+    }
+
+    other._tail=nullptr;
+    other._size=0;
+    other._head=nullptr;
+}
+
+//-------BACK :--------------------------------------------------
+
+template<typename Value>
+auto list<Value>::join_back(list<Value> && other) -> void
+{
+    if(is_empty())
+    {
+        _head=other._head;
+        _tail = other._tail;
+        _size = other.size();
+    }
+    else
+    {
+        _tail->_next = other._head;
+        other._head->_prev = _tail;
+        _tail = other._tail;
+
+        _size += other.size();
+    }
 
     other._tail=nullptr;
     other._size=0;
