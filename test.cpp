@@ -2,6 +2,8 @@
 #include "gtest/gtest.h"
 
 #include "list.hpp"
+#include "quick_sort.h"
+#include "merge_sort.h"
 
 namespace {
 
@@ -283,110 +285,7 @@ TEST_F(FooTest, RandomAccesIteratorGivesHisValue)
     EXPECT_EQ(17, mylist[7]);
 }
 
-template<typename T>
-auto merge_sort(list<T> && l1)-> list<T>
-{
-    if(l1.size()==1)
-    {
-        return std::move(l1);
-    }
-    else if(l1.size()==2)
-    {
-        if( *(l1.begin()) > *(l1.last_elem()))
-        {
-            list<T> l(l1.detach_head());
-            l1.join_tail(std::move(l));
-        }
 
-       return std::move(l1);
-    }
-    else if(l1.size()==3)
-    {
-        list<T> l0 = l1.detach_front();
-        list<T> l2 = l1.detach_back();
-
-
-        if(l0[0] > l1[0])
-        {
-                if(l0[0] > l2[0])
-                {
-                    if(l1[0]>l2[0])
-                    {
-                        l2.join_tail(std::move(l1));
-                        l2.join_tail(std::move(l0));
-                        return std::move(l2);
-                    }
-                    else
-                    {
-                        l1.join_tail(std::move(l2));
-                        l1.join_tail(std::move(l0));
-                        return std::move(l1);
-                    }
-                }
-                else
-                {
-                    l1.join_tail(std::move(l0));
-                    l1.join_tail(std::move(l2));
-                    return std::move(l1);
-                }
-        }
-        else
-        {
-            if(l0[0] > l2[0])
-            {
-                l2.join_tail(std::move(l0));
-                l2.join_tail(std::move(l1));
-                return std::move(l2);
-            }
-            else
-            {
-                if(l1[0]>l2[0])
-                {
-                    l0.join_tail(std::move(l2));
-                    l0.join_tail(std::move(l1));
-                    return std::move(l0);
-                }
-                else
-                {
-                    l0.join_tail(std::move(l1));
-                    l0.join_tail(std::move(l2));
-                    return std::move(l0);
-                }
-            }
-        }
-     }
-     else
-     {
-        list<T> l2(l1.detach_half());
-        list<T> result;
-
-        l1 = merge_sort(std::move(l1));
-        l2 = merge_sort(std::move(l2));
-
-        while(!l1.is_empty() && !l2.is_empty())
-        {
-            if(l1[0] < l2[0])
-            {
-                result.join_tail(std::move(l1.detach_head()));
-            }
-            else
-            {
-                result.join_tail(std::move(l2.detach_head()));
-            }
-        }
-
-        if(not l1.is_empty())
-        {
-            result.join_tail(std::move(l1));
-        }
-
-        if(not l2.is_empty())
-        {
-            result.join_tail(std::move(l2));
-        }
-        return std::move(result);
-    }
-}
 
 
 
@@ -443,32 +342,6 @@ TEST_F(FooTest, merge_sortElevenElems)
     EXPECT_EQ(29, mylist[8]);
     EXPECT_EQ(111, mylist[9]);
     EXPECT_EQ(111, mylist[10]);
-}
-
-
-template<typename V>
-auto quick_sort(list<V> & T, int left, int right) -> void
-{
-    V pivot;
-    int i = left,  j = left;
-
-    pivot = T[(right+left)/2];
-    T[(right+left)/2] = T[right];
-    T[right]=pivot;
-
-    using std::swap;
-
-    while(i < right)
-    {
-        if(T[i] < pivot)swap(T[i],T[j++]);
-        ++i;
-    }
-
-    T[right]=T[j];
-    T[j]=pivot;
-
-    if(left < j-1)quick_sort(T, left, j-1);
-    if(j+1 < right)quick_sort(T, j + 1, right);
 }
 
 TEST_F(FooTest, quick_sortOneElem)
