@@ -5,41 +5,27 @@
 
 namespace {
 
-// The fixture for testing class Foo.
 class FooTest : public ::testing::Test {
  protected:
-  // You can remove any or all of the following functions if its body
-  // is empty.
 
   FooTest() {
-    // You can do set-up work for each test here.
   }
 
   virtual ~FooTest() {
-    // You can do clean-up work that doesn't throw exceptions here.
   }
 
-  // If the constructor and destructor are not enough for setting up
-  // and cleaning up each test, you can define the following methods:
-
   virtual void SetUp() {
-    // Code here will be called immediately after the constructor (right
-    // before each test).
   }
 
   virtual void TearDown() {
-    // Code here will be called immediately after each test (right
-    // before the destructor).
   }
 
     list<double> mylist;
-  // Objects declared here can be used by all tests in the test case for Foo.
 };
 
-// Tests that the Foo::Bar() method does Abc.
 TEST_F(FooTest, WhenListIsEmptyThenSizeIsZeroAndIsEmptyISTrue)
 {
-    EXPECT_EQ(0, mylist.size());
+    EXPECT_EQ(0u, mylist.size());
     EXPECT_EQ(true, mylist.is_empty());
 }
 
@@ -241,6 +227,62 @@ TEST_F(FooTest, detach_half)
     EXPECT_EQ(true, resultList.is_empty());
 }
 
+TEST_F(FooTest, ReverseIteratorGivesHisValue)
+{
+    mylist.push_back(10);
+    mylist.push_back(11);
+    mylist.push_back(12);
+    mylist.push_back(13);
+    mylist.push_back(14);
+    mylist.push_back(15);
+    mylist.push_back(16);
+    mylist.push_back(17);
+    mylist.push_back(18);
+    mylist.push_back(19);
+    mylist.push_back(20);
+
+    auto it = mylist.begin();
+
+    EXPECT_EQ(11, mylist.size());
+
+    EXPECT_EQ(10, *it);
+    EXPECT_EQ(10, *it);
+    EXPECT_EQ(10, *(it++));
+    EXPECT_EQ(11, *it);
+    it++;
+    ++it;
+    it++;
+    EXPECT_EQ(14, *it);
+}
+
+TEST_F(FooTest, RandomAccesIteratorGivesHisValue)
+{
+    mylist.push_back(10);//0
+    mylist.push_back(11);//1
+    mylist.push_back(12);//2
+    mylist.push_back(13);//3
+    mylist.push_back(14);//4
+    mylist.push_back(15);//5
+    mylist.push_back(16);//6
+    mylist.push_back(17);//7
+    mylist.push_back(18);//8
+    mylist.push_back(19);//9
+    mylist.push_back(20);//10
+
+    EXPECT_EQ(11, mylist.size());
+
+    EXPECT_EQ(10, mylist[0]);
+    EXPECT_EQ(20, mylist[10]);
+    using std::swap;
+    swap(mylist[1], mylist[2]);
+    EXPECT_EQ(12, mylist[1]);
+    EXPECT_EQ(11, mylist[2]);
+
+    mylist[10]=mylist[7];
+    EXPECT_EQ(17, mylist[10]);
+    EXPECT_EQ(17, mylist[7]);
+}
+
 template<typename T>
 auto merge_sort(list<T> && l1)-> list<T>
 {
@@ -260,15 +302,15 @@ auto merge_sort(list<T> && l1)-> list<T>
     }
     else if(l1.size()==3)
     {
-        list<T> l0 = l1.detach_head();
-        list<T> l2 = l1.detach_head();
+        list<T> l0 = l1.detach_front();
+        list<T> l2 = l1.detach_back();
 
 
-        if(*(l0.begin()) > *(l1.begin()))
+        if(l0[0] > l1[0])
         {
-                if(*(l0.begin())>*(l2.begin()))
+                if(l0[0] > l2[0])
                 {
-                    if(*(l1.begin())>*(l2.begin()))
+                    if(l1[0]>l2[0])
                     {
                         l2.join_tail(std::move(l1));
                         l2.join_tail(std::move(l0));
@@ -290,7 +332,7 @@ auto merge_sort(list<T> && l1)-> list<T>
         }
         else
         {
-            if(*(l0.begin()) > *(l2.begin()))
+            if(l0[0] > l2[0])
             {
                 l2.join_tail(std::move(l0));
                 l2.join_tail(std::move(l1));
@@ -298,7 +340,7 @@ auto merge_sort(list<T> && l1)-> list<T>
             }
             else
             {
-                if(*(l1.begin())>*(l2.begin()))
+                if(l1[0]>l2[0])
                 {
                     l0.join_tail(std::move(l2));
                     l0.join_tail(std::move(l1));
@@ -323,7 +365,7 @@ auto merge_sort(list<T> && l1)-> list<T>
 
         while(!l1.is_empty() && !l2.is_empty())
         {
-            if(*(l1.begin()) < *(l2.begin()))
+            if(l1[0] < l2[0])
             {
                 result.join_tail(std::move(l1.detach_head()));
             }
@@ -346,28 +388,34 @@ auto merge_sort(list<T> && l1)-> list<T>
     }
 }
 
-TEST_F(FooTest, merge_sortTwoElems)
+
+
+TEST_F(FooTest, merge_sortOneElem)
 {
-    double received;
-    mylist.push_back(22);
-    mylist.push_back(21);
+    mylist.push_back(111);
 
     mylist = merge_sort(std::move(mylist));
 
+    EXPECT_EQ(1, mylist.size());
+    EXPECT_EQ(111, mylist[0]);
+}
+
+TEST_F(FooTest, merge_sortTwoElems)
+{
+    mylist.push_back(222);
+    mylist.push_back(111);
+
+    mylist = merge_sort(std::move(mylist));
 
     EXPECT_EQ(2, mylist.size());
-    received = mylist.pop_front();
-    EXPECT_EQ(21, received);
-    received = mylist.pop_front();
-    EXPECT_EQ(22, received);
 
 
-    EXPECT_EQ(1, 1);
+    EXPECT_EQ(111, mylist[0]);
+    EXPECT_EQ(222, mylist[1]);
 }
 
 TEST_F(FooTest, merge_sortElevenElems)
 {
-    double received;
     mylist.push_back(0);
     mylist.push_back(111);
     mylist.push_back(21);
@@ -384,20 +432,160 @@ TEST_F(FooTest, merge_sortElevenElems)
 
     EXPECT_EQ(11, mylist.size());
 
-    while(not mylist.is_empty())
+    EXPECT_EQ(0, mylist[0]);
+    EXPECT_EQ(0,  mylist[1]);
+    EXPECT_EQ(20,  mylist[2]);
+    EXPECT_EQ(21, mylist[3]);
+    EXPECT_EQ(22, mylist[4]);
+    EXPECT_EQ(23, mylist[5]);
+    EXPECT_EQ(24, mylist[6]);
+    EXPECT_EQ(26, mylist[7]);
+    EXPECT_EQ(29, mylist[8]);
+    EXPECT_EQ(111, mylist[9]);
+    EXPECT_EQ(111, mylist[10]);
+}
+
+
+template<typename V>
+auto quick_sort(list<V> & T, int left, int right) -> void
+{
+    V pivot;
+    int i = left,  j = left;
+
+    pivot = T[(right+left)/2];
+    T[(right+left)/2] = T[right];
+    T[right]=pivot;
+
+    using std::swap;
+
+    while(i < right)
     {
-        std::cout<<mylist.pop_front()<<", ";
+        if(T[i] < pivot)swap(T[i],T[j++]);
+        ++i;
     }
-    //received = mylist.pop_front();
-    //EXPECT_EQ(21, received);
-    //received = mylist.pop_front();
-    //EXPECT_EQ(22, received);
-    //received = mylist.pop_front();
-    //EXPECT_EQ(23, received);
-    //received = mylist.pop_front();
-    //EXPECT_EQ(24, received);
-    //received = mylist.pop_front();
-    //EXPECT_EQ(25, received);
+
+    T[right]=T[j];
+    T[j]=pivot;
+
+    if(left < j-1)quick_sort(T, left, j-1);
+    if(j+1 < right)quick_sort(T, j + 1, right);
+}
+
+TEST_F(FooTest, quick_sortOneElem)
+{
+    mylist.push_back(111);
+
+    int n = mylist.size();
+    EXPECT_EQ(1, mylist.size());
+    quick_sort(mylist, 0, n-1);
+
+    EXPECT_EQ(1, mylist.size());
+    EXPECT_EQ(111, mylist[0]);
+}
+
+TEST_F(FooTest, quick_sortTwoElems)
+{
+    mylist.push_back(222);
+    mylist.push_back(111);
+
+    int n = mylist.size();
+    quick_sort(mylist, 0, n-1);
+
+    EXPECT_EQ(2, mylist.size());
+
+
+    EXPECT_EQ(111, mylist[0]);
+    EXPECT_EQ(222, mylist[1]);
+}
+TEST_F(FooTest, quick_sortThreElems)
+{
+    mylist.push_back(222);
+    mylist.push_back(111);
+    mylist.push_back(333);
+
+    int n = mylist.size();
+    quick_sort(mylist, 0, n-1);
+
+    EXPECT_EQ(3, mylist.size());
+
+
+    EXPECT_EQ(111, mylist[0]);
+    EXPECT_EQ(222, mylist[1]);
+    EXPECT_EQ(333, mylist[2]);
+}
+
+TEST_F(FooTest, quick_sortFourElems)
+{
+
+    mylist.push_back(444);
+    mylist.push_back(333);
+    mylist.push_back(222);
+    mylist.push_back(111);
+
+    int n = mylist.size();
+    quick_sort(mylist, 0, n-1);
+
+    EXPECT_EQ(4, mylist.size());
+
+
+    EXPECT_EQ(111, mylist[0]);
+    EXPECT_EQ(222, mylist[1]);
+    EXPECT_EQ(333, mylist[2]);
+    EXPECT_EQ(444, mylist[3]);
+}
+
+TEST_F(FooTest, quick_sortFiveElems)
+{
+
+    mylist.push_back(555);
+    mylist.push_back(444);
+    mylist.push_back(333);
+    mylist.push_back(222);
+    mylist.push_back(111);
+
+    int n = mylist.size();
+    quick_sort(mylist, 0, n-1);
+
+    EXPECT_EQ(5, mylist.size());
+
+
+    EXPECT_EQ(111, mylist[0]);
+    EXPECT_EQ(222, mylist[1]);
+    EXPECT_EQ(333, mylist[2]);
+    EXPECT_EQ(444, mylist[3]);
+    EXPECT_EQ(555, mylist[4]);
+}
+
+TEST_F(FooTest, quick_sortElevenElems)
+{
+    mylist.push_back(0);
+    mylist.push_back(111);
+    mylist.push_back(21);
+    mylist.push_back(22);
+    mylist.push_back(23);
+    mylist.push_back(24);
+    mylist.push_back(0);
+    mylist.push_back(29);
+    mylist.push_back(111);
+    mylist.push_back(26);
+    mylist.push_back(20);
+
+    int n = mylist.size();
+    quick_sort(mylist, 0, n-1);
+
+    EXPECT_EQ(11, mylist.size());
+
+    EXPECT_EQ(0, mylist[0]);
+    EXPECT_EQ(0,  mylist[1]);
+    EXPECT_EQ(20,  mylist[2]);
+    EXPECT_EQ(21, mylist[3]);
+    EXPECT_EQ(22, mylist[4]);
+    EXPECT_EQ(23, mylist[5]);
+    EXPECT_EQ(24, mylist[6]);
+    EXPECT_EQ(26, mylist[7]);
+    EXPECT_EQ(29, mylist[8]);
+    EXPECT_EQ(111, mylist[9]);
+    EXPECT_EQ(111, mylist[10]);
 }
 
 }  // namespace
