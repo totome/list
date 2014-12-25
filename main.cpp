@@ -13,7 +13,6 @@ int main(int argc, char **argv)
   lst::List<double> l;
   std::cout<<std::endl<<"!!!!!!!!!!!!!!!!\n"<<std::endl;
   l.push_back(15);
-
   std::cout<<std::endl<<"!!!!!!!!!!!!!!!!\n"<<std::endl;
   std::cout<<"Elelm : "<<l.pop_back()<<std::endl;
   return 0;
