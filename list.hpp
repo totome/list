@@ -11,13 +11,19 @@ private:
     {
         node * _prev;
         node * _next;
-        Value _value;
+        std::unique_ptr<Value> _value;
 
         node() : _prev(nullptr), _next(nullptr) {}
 
-        explicit node(Value v) : _prev(nullptr), _next(nullptr), _value(v) {}
+        explicit node(Value v) : _prev(nullptr), _next(nullptr), _value(new Value(v)) {}
 
-        node(node * p, node * n, Value v) : _prev(p), _next(n), _value(v) {}
+        node(node * p, node * n, Value v) : _prev(p), _next(n), _value(new Value(v)) {}
+
+        node(node * p, node * n) : _prev(p), _next(n) {}
+
+        bool hasValue(){return _value;}
+
+        operator bool(){return _value;}
 
         ~node()
         {
@@ -26,7 +32,12 @@ private:
         }
     };
 
-    list(Value v) : _head(new node(v)), _tail(_head), _size(1) {}
+    list(Value v) : _head(new node()), _tail(new node()), _size(1)
+    {
+        _head->_next = _tail->_prev = new node(v);
+        _head->_next->_prev = _head;
+        _tail->_prev->_next = _tail;
+    }
 
 public:
 
@@ -46,12 +57,12 @@ public:
 
         Value & operator*()
         {
-            return _current->_value;
+            return *(_current->_value.get());
         }
 
         const Value & operator*()const
         {
-            return _current->_value;
+            return *(_current->_value.get());
         }
 
         iterator operator++()
@@ -81,68 +92,66 @@ public:
         node * _current;
     };
 
-    const Value & operator[](int n)const;
-    Value & operator[](int n);
-
     list(const list & other) = delete;
 
-    list(node * h, node * t, int s): _head(h), _tail(t), _size(s) {}
+//    list(node * h, node * t, int s): _head(h), _tail(t), _size(s) {}
 
-    list() : _head(nullptr), _tail(_head), _size(0)
+    list() : _head(new node()), _tail(new node()), _size(0)
     {
-
+        _head->_next = _tail;
+        _tail->_prev = _head;
     }
 
-    list(node * n) : _head(n), _tail(n), _size(1)
+    list(node * n) : _head(new node()), _tail(new node()), _size(1)
     {
+        _head->_next = n;
+        n->_prev = _head;
+        _tail->_prev = n;
+        n->_next = _tail;
 
     }
 
     list(list && other)
-        : _head(nullptr), _tail(nullptr), _size(0)
+        : _head(new node()), _tail(new node()), _size(0)
     {
+        _head->_next = _tail;
+        _tail->_prev = _head;
+
         using std::swap;
         swap(_head, other._head);
-
-        if(other.size()!=1)
-            swap(_tail, other._tail);
-        else
-            _tail=_head;
-
+        swap(_tail, other->_tail);
         swap(_size, other._size);
     }
 
     list & operator=(list && other)
     {
-        if(this!=&other)
+        if(this != &other)
         {
-            this->_size=0;
-            this->_head=nullptr;
-            this->_tail=nullptr;
-        }
-        using std::swap;
-        swap(_head, other._head);
-        if(other.size()!=1)
+            using std::swap;
+            swap(_head, other._head);
             swap(_tail, other._tail);
-        else
-            _tail=_head;
-
-        swap(_size, other._size);
-
+            swap(_size, other._size);
+        }
         return *this;
     }
 
     ~list()
     {
-        _tail=nullptr;
-        _size=0;
-
-        if(_head)
-            delete _head;
+        delete _head;
     }
 
+private:
+    auto push_front()-> void;
+    auto push_back()-> void;
+
+    auto partition(node *, node *)->void;
+    auto selectPartition(node * left, node * right, int pos)->Value;
+
+public:
     const int & size() const;
     auto is_empty() const -> bool;
+
+    auto remove(node *) -> void;//probably should be private
 
     auto push_front(Value)-> void;
     auto pop_front(void)  -> Value;
@@ -155,14 +164,21 @@ public:
 
     auto join_front(list && other) -> void;
     auto join_back(list && other) -> void;
-    auto detach_front(int n = 0) -> list<Value>;
+    auto detach_front() -> list<Value>;
 
     auto join_tail(list &&) -> void;
     auto detach_head() -> list<Value>;
 
+    auto detach_elem()->list<Value>;
+
     auto detach_half() -> list<Value>;
     auto detach_back(void) -> list<Value>;
     auto end() -> iterator;
+
+    auto quick_sort()->void;
+
+    auto select(int givenPosition)->Value;
+
 
 private:
     node * _head;
@@ -170,23 +186,31 @@ private:
     int _size;
 };
 
+template<Value>
+auto list<Value>::detach_elem(list<Value>::iterator it)->list<value>
+{
+    std::unique_ptr<Value> tmp;
+    tmp.swap(*it);
+    return std::move(list<Value>::unitList(tmp));
+}
+
 //----begin and end------------------
 template<typename Value>
 auto list<Value>::begin() -> list<Value>::iterator
 {
-    return list<Value>::iterator(_head);
+    return list<Value>::iterator(_head->_next);
 }
 
 template<typename Value>
 auto list<Value>::last_elem() -> list<Value>::iterator
 {
-    return list<Value>::iterator(_tail);
+    return list<Value>::iterator(_tail->_prev);
 }
 
 template<typename Value>
 auto list<Value>::end() -> list<Value>::iterator
 {
-    return list<Value>::iterator(nullptr);
+    return list<Value>::iterator(_tail);
 }
 
 //---info abou list capacity---------
@@ -194,13 +218,16 @@ auto list<Value>::end() -> list<Value>::iterator
 template<typename Value>
 auto list<Value>::size() const -> const int &
 {
-    return _size;
+    int count = 0;
+    list<Value>::iterator it = begin();
+    while(it!=end()){++it; ++count;}
+    return count;//_size;
 }
 
 template<typename Value>
 auto list<Value>::is_empty() const -> bool
 {
-    return _size == 0;
+    return size() == 0;
 }
 //-------------------------------------
 
@@ -209,16 +236,42 @@ auto list<Value>::is_empty() const -> bool
 template<typename Value>
 auto list<Value>::push_front(Value v) -> void
 {
-    if(this->is_empty())
+    node * nPtr = new node(_head, _head->_next, v);
+
+    _head->_next = nPtr;
+    nPtr->_next->_prev = nPtr;
+
+    ++_size;
+}
+
+template<typename Value>
+auto list<Value>::push_front(void) -> void
+{
+    node * nPtr = new node(_head, _head->_next);
+
+    _head->_next = nPtr;
+    nPtr->_next->_prev = nPtr;
+
+    ++_size;
+}
+
+template<typename Value>
+auto list<Value>::remove(node * toRe) -> void
+{
+    if(!toRe->hasValue())
     {
-        _head = new node(v);
-        _tail = _head;
+        throw std::out_of_range("trying to remowe guard-node");
     }
     else
     {
-        _head = new node(nullptr, _head, v);
+        _size--;
+
+        toRe->_prev->_next = toRe->_next;
+        toRe->_next->_prev = toRe->_prev;
+
+        toRe->_next = nullptr;
+        delete toRe;
     }
-    ++_size;
 }
 
 template<typename Value>
@@ -230,7 +283,19 @@ auto list<Value>::pop_front(void) -> Value
     }
     else
     {
-        Value tmpValue = _head->_value;
+        node * tmpNode = _head->_next;
+        std::unique_ptr<Value> tmpPtr;
+
+        tmpPtr.swap(_value);
+
+        remove(tmpNode);
+
+        return *tmpPtr
+    }
+}
+
+/*------------the old one:-----------
+        Value tmpValue = *_head->_value;
         node * tmpPtr = _head;
 
         if(this->size()==1)
@@ -248,23 +313,28 @@ auto list<Value>::pop_front(void) -> Value
         delete tmpPtr;
         return tmpValue;
     }
-}
+}*/
 //------push and pop back----------------
 
 template<typename Value>
 auto list<Value>::push_back(Value v) -> void
 {
-    if(this->is_empty())
-    {
-        _head = new node(v);
-        _tail = _head;
-    }
-    else
-    {
-        _tail->_next = new node(v);
-        _tail->_next->_prev=_tail;
-        _tail = _tail->_next;
-    }
+    node * nPtr = new node(_tail->_prev, _tail, v);
+
+    _tail->_prev = nPtr;
+    nPtr->_prev->_next = nPtr;
+
+    ++_size;
+}
+
+template<typename Value>
+auto list<Value>::push_back(void) -> void
+{
+    node * nPtr = new node(_tail->_prev, _tail);
+
+    _tail->_prev = nPtr;
+    nPtr->_prev->_next = nPtr;
+
     ++_size;
 }
 
@@ -277,7 +347,24 @@ auto list<Value>::pop_back(void) -> Value
     }
     else
     {
-        Value tmpValue = _tail->_value;
+        node * tmpNode = _tail->_prev;
+        std::unique_ptr<Value> tmpPtr;
+
+        tmpPtr.swap(_value);
+
+        remove(tmpNode);
+
+        return *tmpPtr
+    }
+}
+/*
+    if(this->is_empty())
+    {
+        throw std::exception();
+    }
+    else
+    {
+        Value tmpValue = *_tail->_value;
         node * tmpPtr = _tail;
 
         if(this->size()==1)
@@ -305,35 +392,57 @@ auto list<Value>::pop_back(void) -> Value
         delete tmpPtr;
         return tmpValue;
     }
-}
+}*/
 //-----join and detach-------------------
 
 template<typename Value>
 auto list<Value>::join_tail(list<Value> && other) -> void
 {
-    if(is_empty())
+    if(this != &other && !other.is_empty())
     {
-        _head=other._head;
-    }
-    else
-    {
-        _tail->_next = other._head;
-        other._head->_prev = _tail;
-    }
+        other._head->_next->_prev = _tail->_prev;
+        other._tail->_prev->_next = _tail;
 
-    _tail = other._tail;
-    _size += other.size();
+        _tail->_prev->_next = other._head->_next;
+        _tail->_prev = other._tail->_prev;
 
-    other._tail=nullptr;
-    other._size=0;
-    other._head=nullptr;
+        other._head->_next = other._tail;
+        _size += other._size;
+    }
 }
 
 
 template<typename Value>
-auto list<Value>::detach_front(int n) -> list<Value>
+auto list<Value>::detach_front() -> list<Value>
 {
+    _size--;
+
+
+    delete toRe;
+
+    if(this->is_empty())
+    {
+        throw std::exception();
+    }
+    else
+    {
+        node * toRe = _head->_next;
+
+        _head->_next = toRe->_next;
+        toRe->_next->_prev = toRe->_prev;
+
+        toRe->_next = nullptr;
+        std::unique_ptr<Value> tmpPtr;
+
+        tmpPtr.swap(_value);
+
+        remove(tmpNode);
+
+        return *tmpPtr
+    }
     node * tmp;
+}
+
 
     if(this->is_empty())
     {
@@ -510,37 +619,7 @@ auto list<Value>::detach_half() -> list<Value>
      }
 }
 
-template <typename Value>
-auto list<Value>::operator[](int n)const ->const Value &
-{
-    if(n>_size)
-    {
-        throw std::exception();
-    }
 
-    list<Value>::iterator it = begin();
-    while(n>0)
-    {
-        ++it; --n;
-    }
-    return *it;
-}
-
-template <typename Value>
-auto list<Value>::operator[](int n)->Value &
-{
-    if(n>_size or n<0)
-    {
-        throw std::exception();
-    }
-
-    list<Value>::iterator it = begin();
-    while(n>0)
-    {
-        ++it; --n;
-    }
-    return *it;
-}
 
 
 #endif //LIST_HPP
