@@ -2,8 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "list.hpp"
-#include "quick_sort.h"
-#include "merge_sort.h"
+
 
 namespace {
 
@@ -199,7 +198,7 @@ TEST_F(FooTest, detach_head)
     EXPECT_EQ(22, received);
 }
 
-TEST_F(FooTest, detach_half)
+/*TEST_F(FooTest, DISABLED_detach_half)
 {
     double received;
     mylist.push_back(21);
@@ -227,7 +226,8 @@ TEST_F(FooTest, detach_half)
 
 
     EXPECT_EQ(true, resultList.is_empty());
-}
+}*/
+
 
 TEST_F(FooTest, ReverseIteratorGivesHisValue)
 {
@@ -256,119 +256,32 @@ TEST_F(FooTest, ReverseIteratorGivesHisValue)
     it++;
     EXPECT_EQ(14, *it);
 }
-
-TEST_F(FooTest, RandomAccesIteratorGivesHisValue)
-{
-    mylist.push_back(10);//0
-    mylist.push_back(11);//1
-    mylist.push_back(12);//2
-    mylist.push_back(13);//3
-    mylist.push_back(14);//4
-    mylist.push_back(15);//5
-    mylist.push_back(16);//6
-    mylist.push_back(17);//7
-    mylist.push_back(18);//8
-    mylist.push_back(19);//9
-    mylist.push_back(20);//10
-
-    EXPECT_EQ(11, mylist.size());
-
-    EXPECT_EQ(10, mylist[0]);
-    EXPECT_EQ(20, mylist[10]);
-    using std::swap;
-    swap(mylist[1], mylist[2]);
-    EXPECT_EQ(12, mylist[1]);
-    EXPECT_EQ(11, mylist[2]);
-
-    mylist[10]=mylist[7];
-    EXPECT_EQ(17, mylist[10]);
-    EXPECT_EQ(17, mylist[7]);
-}
-
-
-
-
-
-TEST_F(FooTest, merge_sortOneElem)
-{
-    mylist.push_back(111);
-
-    mylist = merge_sort(std::move(mylist));
-
-    EXPECT_EQ(1, mylist.size());
-    EXPECT_EQ(111, mylist[0]);
-}
-
-TEST_F(FooTest, merge_sortTwoElems)
-{
-    mylist.push_back(222);
-    mylist.push_back(111);
-
-    mylist = merge_sort(std::move(mylist));
-
-    EXPECT_EQ(2, mylist.size());
-
-
-    EXPECT_EQ(111, mylist[0]);
-    EXPECT_EQ(222, mylist[1]);
-}
-
-TEST_F(FooTest, merge_sortElevenElems)
-{
-    mylist.push_back(0);
-    mylist.push_back(111);
-    mylist.push_back(21);
-    mylist.push_back(22);
-    mylist.push_back(23);
-    mylist.push_back(24);
-    mylist.push_back(0);
-    mylist.push_back(29);
-    mylist.push_back(111);
-    mylist.push_back(26);
-    mylist.push_back(20);
-
-    mylist = merge_sort(std::move(mylist));
-
-    EXPECT_EQ(11, mylist.size());
-
-    EXPECT_EQ(0, mylist[0]);
-    EXPECT_EQ(0,  mylist[1]);
-    EXPECT_EQ(20,  mylist[2]);
-    EXPECT_EQ(21, mylist[3]);
-    EXPECT_EQ(22, mylist[4]);
-    EXPECT_EQ(23, mylist[5]);
-    EXPECT_EQ(24, mylist[6]);
-    EXPECT_EQ(26, mylist[7]);
-    EXPECT_EQ(29, mylist[8]);
-    EXPECT_EQ(111, mylist[9]);
-    EXPECT_EQ(111, mylist[10]);
-}
-
+/*
 TEST_F(FooTest, quick_sortOneElem)
 {
     mylist.push_back(111);
 
-    int n = mylist.size();
     EXPECT_EQ(1, mylist.size());
-    quick_sort(mylist, 0, n-1);
+
+    mylist.quick_sort();
 
     EXPECT_EQ(1, mylist.size());
-    EXPECT_EQ(111, mylist[0]);
+    EXPECT_EQ(111, mylist.pop_back());
 }
+
 
 TEST_F(FooTest, quick_sortTwoElems)
 {
     mylist.push_back(222);
     mylist.push_back(111);
 
-    int n = mylist.size();
-    quick_sort(mylist, 0, n-1);
+    mylist.quick_sort();
 
-    EXPECT_EQ(2, mylist.size());
+    ASSERT_EQ(2, mylist.size());
 
 
-    EXPECT_EQ(111, mylist[0]);
-    EXPECT_EQ(222, mylist[1]);
+    EXPECT_EQ(111, mylist.pop_front());
+    EXPECT_EQ(222, mylist.pop_front());
 }
 TEST_F(FooTest, quick_sortThreElems)
 {
@@ -376,15 +289,13 @@ TEST_F(FooTest, quick_sortThreElems)
     mylist.push_back(111);
     mylist.push_back(333);
 
-    int n = mylist.size();
-    quick_sort(mylist, 0, n-1);
-
+    mylist.quick_sort();
     EXPECT_EQ(3, mylist.size());
 
 
-    EXPECT_EQ(111, mylist[0]);
-    EXPECT_EQ(222, mylist[1]);
-    EXPECT_EQ(333, mylist[2]);
+    EXPECT_EQ(111, mylist.pop_front());
+    EXPECT_EQ(222, mylist.pop_front());
+    EXPECT_EQ(333, mylist.pop_front());
 }
 
 TEST_F(FooTest, quick_sortFourElems)
@@ -395,16 +306,14 @@ TEST_F(FooTest, quick_sortFourElems)
     mylist.push_back(222);
     mylist.push_back(111);
 
-    int n = mylist.size();
-    quick_sort(mylist, 0, n-1);
-
+    mylist.quick_sort();
     EXPECT_EQ(4, mylist.size());
 
 
-    EXPECT_EQ(111, mylist[0]);
-    EXPECT_EQ(222, mylist[1]);
-    EXPECT_EQ(333, mylist[2]);
-    EXPECT_EQ(444, mylist[3]);
+    EXPECT_EQ(111, mylist.pop_front());
+    EXPECT_EQ(222, mylist.pop_front());
+    EXPECT_EQ(333, mylist.pop_front());
+    EXPECT_EQ(444, mylist.pop_front());
 }
 
 TEST_F(FooTest, quick_sortFiveElems)
@@ -416,17 +325,15 @@ TEST_F(FooTest, quick_sortFiveElems)
     mylist.push_back(222);
     mylist.push_back(111);
 
-    int n = mylist.size();
-    quick_sort(mylist, 0, n-1);
-
+    mylist.quick_sort();
     EXPECT_EQ(5, mylist.size());
 
 
-    EXPECT_EQ(111, mylist[0]);
-    EXPECT_EQ(222, mylist[1]);
-    EXPECT_EQ(333, mylist[2]);
-    EXPECT_EQ(444, mylist[3]);
-    EXPECT_EQ(555, mylist[4]);
+    EXPECT_EQ(111, mylist.pop_front());
+    EXPECT_EQ(222, mylist.pop_front());
+    EXPECT_EQ(333, mylist.pop_front());
+    EXPECT_EQ(444, mylist.pop_front());
+    EXPECT_EQ(555, mylist.pop_front());
 }
 
 TEST_F(FooTest, quick_sortElevenElems)
@@ -443,23 +350,60 @@ TEST_F(FooTest, quick_sortElevenElems)
     mylist.push_back(26);
     mylist.push_back(20);
 
-    int n = mylist.size();
-    quick_sort(mylist, 0, n-1);
-
+    mylist.quick_sort();
     EXPECT_EQ(11, mylist.size());
 
-    EXPECT_EQ(0, mylist[0]);
-    EXPECT_EQ(0,  mylist[1]);
-    EXPECT_EQ(20,  mylist[2]);
-    EXPECT_EQ(21, mylist[3]);
-    EXPECT_EQ(22, mylist[4]);
-    EXPECT_EQ(23, mylist[5]);
-    EXPECT_EQ(24, mylist[6]);
-    EXPECT_EQ(26, mylist[7]);
-    EXPECT_EQ(29, mylist[8]);
-    EXPECT_EQ(111, mylist[9]);
-    EXPECT_EQ(111, mylist[10]);
+    EXPECT_EQ(0, mylist.pop_front());
+    EXPECT_EQ(0, mylist.pop_front());
+    EXPECT_EQ(20, mylist.pop_front());
+    EXPECT_EQ(21, mylist.pop_front());
+    EXPECT_EQ(22, mylist.pop_front());
+    EXPECT_EQ(23, mylist.pop_front());
+    EXPECT_EQ(24, mylist.pop_front());
+    EXPECT_EQ(26, mylist.pop_front());
+    EXPECT_EQ(29, mylist.pop_front());
+    EXPECT_EQ(111, mylist.pop_front());
+    EXPECT_EQ(111, mylist.pop_front());
 }
+
+TEST_F(FooTest, select0fromOneElemList)
+{
+    mylist.push_back(111);
+
+    EXPECT_EQ(1, mylist.size());
+
+    double selected_0 = mylist.select(0);
+
+    EXPECT_EQ(1, mylist.size());
+    EXPECT_EQ(111, selected_0);
+}
+
+TEST_F(FooTest, select0fromTwoElemList)
+{
+    mylist.push_back(222);
+    mylist.push_back(111);
+
+    EXPECT_EQ(2, mylist.size());
+
+    double selected_0 = mylist.select(0);
+
+    EXPECT_EQ(2, mylist.size());
+    EXPECT_EQ(111, selected_0);
+}
+
+TEST_F(FooTest, select1fromTwoElemList)
+{
+    mylist.push_back(222);
+    mylist.push_back(111);
+
+    EXPECT_EQ(2, mylist.size());
+
+    double selected_1 = mylist.select(1);
+
+    EXPECT_EQ(2, mylist.size());
+    EXPECT_EQ(222, selected_1);
+}
+*/
 
 }  // namespace
 

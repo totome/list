@@ -21,9 +21,9 @@ private:
 
         node(node * p, node * n) : _prev(p), _next(n) {}
 
-        bool hasValue(){return _value;}
+        bool hasValue(){return _value ? 1 : 0;}
 
-        operator bool(){return _value;}
+        operator bool(){return _value ? 1 : 0;}
 
         ~node()
         {
@@ -31,6 +31,14 @@ private:
                 delete _next;
         }
     };
+
+    list(node * n) : _head(new node()), _tail(new node()), _size(1)
+    {
+        _head->_next = n;
+        _tail->_prev = n;
+        n->_prev = _head;
+        n->_next = _tail;
+    }
 
     list(Value v) : _head(new node()), _tail(new node()), _size(1)
     {
@@ -57,12 +65,12 @@ public:
 
         Value & operator*()
         {
-            return *(_current->_value.get());
+            return *_current->_value;
         }
 
         const Value & operator*()const
         {
-            return *(_current->_value.get());
+            return *_current->_value;
         }
 
         iterator operator++()
@@ -78,14 +86,19 @@ public:
             return tmp;
         }
 
+        node * getNode()
+        {
+            return *_current;
+        }
+
         bool operator==(iterator other)
         {
-            return *this==other;
+            return &_current==&(other._current);
         }
 
         bool operator!=(iterator other)
         {
-            return *this!=other;
+            return !(*this==other);
         }
 
         private:
@@ -102,14 +115,14 @@ public:
         _tail->_prev = _head;
     }
 
-    list(node * n) : _head(new node()), _tail(new node()), _size(1)
+/*    list(node * n) : _head(new node()), _tail(new node()), _size(1)
     {
         _head->_next = n;
         n->_prev = _head;
         _tail->_prev = n;
         n->_next = _tail;
 
-    }
+    }*/
 
     list(list && other)
         : _head(new node()), _tail(new node()), _size(0)
@@ -119,7 +132,7 @@ public:
 
         using std::swap;
         swap(_head, other._head);
-        swap(_tail, other->_tail);
+        swap(_tail, other._tail);
         swap(_size, other._size);
     }
 
@@ -159,7 +172,7 @@ public:
     auto push_back(Value)-> void;
     auto pop_back(void)  -> Value;
 
-    auto begin() -> iterator;
+    auto begin()const -> iterator;
     auto last_elem() -> iterator;
 
     auto join_front(list && other) -> void;
@@ -169,11 +182,12 @@ public:
     auto join_tail(list &&) -> void;
     auto detach_head() -> list<Value>;
 
-    auto detach_elem()->list<Value>;
+    auto detach_elem(iterator it)->list<Value>;
+    auto detach(list<Value>::iterator it) -> list<Value>;
 
-    auto detach_half() -> list<Value>;
+//    auto detach_half() -> list<Value>;
     auto detach_back(void) -> list<Value>;
-    auto end() -> iterator;
+    auto end() const -> iterator;
 
     auto quick_sort()->void;
 
@@ -186,8 +200,8 @@ private:
     int _size;
 };
 
-template<Value>
-auto list<Value>::detach_elem(list<Value>::iterator it)->list<value>
+template<typename Value>
+auto list<Value>::detach_elem(iterator it)->list<Value>
 {
     std::unique_ptr<Value> tmp;
     tmp.swap(*it);
@@ -196,7 +210,7 @@ auto list<Value>::detach_elem(list<Value>::iterator it)->list<value>
 
 //----begin and end------------------
 template<typename Value>
-auto list<Value>::begin() -> list<Value>::iterator
+auto list<Value>::begin()const -> list<Value>::iterator
 {
     return list<Value>::iterator(_head->_next);
 }
@@ -208,7 +222,7 @@ auto list<Value>::last_elem() -> list<Value>::iterator
 }
 
 template<typename Value>
-auto list<Value>::end() -> list<Value>::iterator
+auto list<Value>::end()const -> list<Value>::iterator
 {
     return list<Value>::iterator(_tail);
 }
@@ -283,14 +297,15 @@ auto list<Value>::pop_front(void) -> Value
     }
     else
     {
+        --_size;
         node * tmpNode = _head->_next;
         std::unique_ptr<Value> tmpPtr;
 
-        tmpPtr.swap(_value);
+        tmpPtr.swap(tmpNode->_value);
 
         remove(tmpNode);
 
-        return *tmpPtr
+        return *tmpPtr;
     }
 }
 
@@ -347,14 +362,15 @@ auto list<Value>::pop_back(void) -> Value
     }
     else
     {
+        --_size;
         node * tmpNode = _tail->_prev;
         std::unique_ptr<Value> tmpPtr;
 
-        tmpPtr.swap(_value);
+        tmpPtr.swap(tmpNode->_value);
 
         remove(tmpNode);
 
-        return *tmpPtr
+        return *tmpPtr;
     }
 }
 /*
@@ -400,14 +416,30 @@ auto list<Value>::join_tail(list<Value> && other) -> void
 {
     if(this != &other && !other.is_empty())
     {
-        other._head->_next->_prev = _tail->_prev;
+        //Po kolei:
+        //1. Wypinamy elementy z innej listy:
+        node * tmpHead = other._head->_next;
+        node * tmpTail = other._tail->_prev;
+        //2. Kasujemy te elementy z tamtej innej listy:
+        other._head->_next = _tail;
+        //3. Wpinamy wyciągnięte elementy do naszej listy:
+        //a)Przypinamy liste do elementow:
+        tmpHead->_prev = _tail->_prev;
+        tmpTail->_next = _tail;
+        //b)Przypinamy elementy do listy:
+        _tail->_prev->_next = tmpHead;
+        _tail->_prev = tmpTail;
+        //4. Resize:
+        _size += other._size;
+
+        /*other._head->_next->_prev = _tail->_prev;
         other._tail->_prev->_next = _tail;
 
         _tail->_prev->_next = other._head->_next;
         _tail->_prev = other._tail->_prev;
 
         other._head->_next = other._tail;
-        _size += other._size;
+        _size += other._size;*/
     }
 }
 
@@ -415,11 +447,6 @@ auto list<Value>::join_tail(list<Value> && other) -> void
 template<typename Value>
 auto list<Value>::detach_front() -> list<Value>
 {
-    _size--;
-
-
-    delete toRe;
-
     if(this->is_empty())
     {
         throw std::exception();
@@ -429,78 +456,62 @@ auto list<Value>::detach_front() -> list<Value>
         node * toRe = _head->_next;
 
         _head->_next = toRe->_next;
-        toRe->_next->_prev = toRe->_prev;
+        toRe->_next->_prev = _head;
 
-        toRe->_next = nullptr;
-        std::unique_ptr<Value> tmpPtr;
-
-        tmpPtr.swap(_value);
-
-        remove(tmpNode);
-
-        return *tmpPtr
+        return std::move(list<Value>(toRe));
     }
-    node * tmp;
-}
-
-
-    if(this->is_empty())
-    {
-        return list();
-    }
-    else
-    {
-        tmp=_head;
-
-        if(this->size()==1)
-        {
-            _head=nullptr;
-            _tail=nullptr;
-        }
-        else
-        {
-            _head->_next->_prev = nullptr;
-            _head=_head->_next;
-        }
-        _size = _size-1;
-        tmp->_next=nullptr;
-    }
-    return std::move(list(tmp));
 }
 
 template<typename Value>
 auto list<Value>::detach_back(void) -> list<Value>
 {
-    node * tmp;
-
     if(this->is_empty())
     {
-        return list();
+        throw std::exception();
     }
     else
     {
-        tmp=_tail;
+        node * toRe = _tail->_prev;
 
-        if(this->size()==1)
-        {
-            _head=nullptr;
-            _tail=nullptr;
-        }
-        else
-        {
-            _tail=_tail->_prev;
-            _tail->_next=nullptr;
-        }
-        _size = _size-1;
-        tmp->_prev=nullptr;
-        tmp->_next=nullptr;
+        _tail->_prev = toRe->_prev;
+        toRe->_prev->_next = _tail;
+
+        return std::move(list<Value>(toRe));
     }
-    return std::move(list(tmp));
 }
 
 template<typename Value>
 auto list<Value>::join_front(list<Value> && other) -> void
 {
+    if(this != &other && !other.is_empty())
+    {
+        //Po kolei:
+        //1. Wypinamy elementy z innej listy:
+        node * tmpHead = other._head->_next;
+        node * tmpTail = other._tail->_prev;
+        //2. Kasujemy te elementy z tamtej innej listy(wymaganie destruktora):
+        other._head->_next = _tail;
+        //3. Wpinamy wyciągnięte elementy do naszej listy:
+        //a)Przypinamy liste do elementow:
+        tmpHead->_prev = _head;
+        tmpTail->_next = _head->_next;
+        //b)Przypinamy elementy do listy:
+        _head->_next->_prev = tmpTail;
+        _head->_next = tmpHead;
+        //4. Resize:
+        _size += other._size;
+
+        /*other._head->_next->_prev = _tail->_prev;
+        other._tail->_prev->_next = _tail;
+
+        _tail->_prev->_next = other._head->_next;
+        _tail->_prev = other._tail->_prev;
+
+        other._head->_next = other._tail;
+        _size += other._size;*/
+    }
+}
+/*
     if(is_empty())
     {
         _head= other._head;
@@ -518,12 +529,58 @@ auto list<Value>::join_front(list<Value> && other) -> void
     other._tail=nullptr;
     other._size=0;
     other._head=nullptr;
-}
+}*/
 
 template<typename Value>
 auto list<Value>::join_back(list<Value> && other) -> void
 {
-    if(is_empty())
+    if(this != &other && !other.is_empty())
+    {
+        //Po kolei:
+        //1. Wypinamy elementy z innej listy:
+        node * tmpHead = other._head->_next;
+        node * tmpTail = other._tail->_prev;
+        //2. Kasujemy te elementy z tamtej innej listy:
+        other._head->_next = _tail;
+        //3. Wpinamy wyciągnięte elementy do naszej listy:
+        //a)Przypinamy liste do elementow:
+        tmpHead->_prev = _tail->_prev;
+        tmpTail->_next = _tail;
+        //b)Przypinamy elementy do listy:
+        _tail->_prev->_next = tmpHead;
+        _tail->_prev = tmpTail;
+        //4. Resize:
+        _size += other._size;
+
+        /*other._head->_next->_prev = _tail->_prev;
+        other._tail->_prev->_next = _tail;
+
+        _tail->_prev->_next = other._head->_next;
+        _tail->_prev = other._tail->_prev;
+
+        other._head->_next = other._tail;
+        _size += other._size;*/
+    }
+}
+
+template <typename Value>
+auto list<Value>::detach(list<Value>::iterator it) -> list<Value>
+{
+    node * toRe = it.getNode();
+
+    if(this->is_empty())
+    {
+        throw std::exception();
+    }
+    else
+    {
+        toRe->_prev->_next = toRe->_next;
+        toRe->_next->_prev = toRe->_prev;
+
+        return std::move(list<Value>(toRe));
+    }
+}
+/*    if(is_empty())
     {
         _head=other._head;
         _tail = other._tail;
@@ -541,12 +598,28 @@ auto list<Value>::join_back(list<Value> && other) -> void
     other._tail=nullptr;
     other._size=0;
     other._head=nullptr;
-}
+}*/
 
 
 template<typename Value>
 auto list<Value>::detach_head() -> list<Value>
 {
+    if(this->is_empty())
+    {
+        throw std::exception();
+    }
+    else
+    {
+        node * toRe = _head->_next;
+
+        _head->_next = toRe->_next;
+        toRe->_next->_prev = _head;
+
+        return std::move(list<Value>(toRe));
+    }
+}
+
+    /*
     node * tmp;
 
     if(this->is_empty())
@@ -571,10 +644,10 @@ auto list<Value>::detach_head() -> list<Value>
         tmp->_next=nullptr;
     }
     return std::move(list(tmp));
-}
+}*/
 
 
-template<typename Value>
+/*template<typename Value>
 auto list<Value>::detach_half() -> list<Value>
 {
     node * tmp;
@@ -617,7 +690,7 @@ auto list<Value>::detach_half() -> list<Value>
 
         return list(tmp, tmptail, tmpsize-half);
      }
-}
+}*/
 
 
 
