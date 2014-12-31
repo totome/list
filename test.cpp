@@ -39,7 +39,9 @@ TEST_F(FooTest, WhenListIsNotEmptyThenSizeIsNotZeroAndIsEmptyIsFalse)
 
 TEST_F(FooTest, SizeIsSameAsItShouldBeAfterPushFront)
 {
+    EXPECT_EQ(0, mylist.size());
     mylist.push_front(111);
+    EXPECT_EQ(1, mylist.size());
     mylist.push_front(111);
     mylist.push_front(111);
     mylist.push_front(111);
@@ -153,6 +155,7 @@ TEST_F(FooTest, joinTail)
     resultList.join_tail(std::move(listToJoin));
 
     EXPECT_EQ(6, resultList.size());
+
     EXPECT_EQ(0, listToJoin.size());
 
     received = resultList.pop_back();
@@ -179,6 +182,8 @@ TEST_F(FooTest, detach_head)
 
     listToJoin.push_front(24);
     listToJoin.push_back(25);
+    EXPECT_EQ(4, resultList.size());
+    EXPECT_EQ(2, listToJoin.size());
 
     resultList.join_tail(std::move(listToJoin.detach_head()));
     resultList.join_tail(std::move(listToJoin.detach_head()));
@@ -197,36 +202,6 @@ TEST_F(FooTest, detach_head)
     received = resultList.pop_back();
     EXPECT_EQ(22, received);
 }
-
-/*TEST_F(FooTest, DISABLED_detach_half)
-{
-    double received;
-    mylist.push_back(21);
-    mylist.push_back(22);
-    mylist.push_back(23);
-    mylist.push_front(20);
-    mylist.push_back(24);
-    mylist.push_back(25);
-
-    list<double> resultList;
-
-    resultList.join_tail(std::move(mylist.detach_half()));
-
-    EXPECT_EQ(3, resultList.size());
-    EXPECT_EQ(3, mylist.size());
-
-    received = resultList.pop_back();
-    EXPECT_EQ(25, received);
-
-    received = resultList.pop_back();
-    EXPECT_EQ(24, received);
-
-    received =resultList.pop_front();
-    EXPECT_EQ(23, received);
-
-
-    EXPECT_EQ(true, resultList.is_empty());
-}*/
 
 
 TEST_F(FooTest, ReverseIteratorGivesHisValue)
@@ -255,6 +230,39 @@ TEST_F(FooTest, ReverseIteratorGivesHisValue)
     ++it;
     it++;
     EXPECT_EQ(14, *it);
+}
+
+TEST_F(FooTest, detach)
+{
+    double received;
+    mylist.push_back(21);
+    mylist.push_back(22);
+    mylist.push_back(23);
+    mylist.push_front(20);
+    mylist.push_back(24);
+    mylist.push_back(25);
+
+    list<double>::iterator it = mylist.begin();
+
+    EXPECT_EQ(6, mylist.size());
+
+    ++it;
+    ++it;
+    ++it;
+
+    list<double> toCheck(mylist.detach(it));
+
+    EXPECT_EQ(1, toCheck.size());
+    EXPECT_EQ(5, mylist.size());
+    EXPECT_EQ(23, toCheck.pop_front());
+
+    it = mylist.begin();
+
+    toCheck.join_tail(std::move(mylist.detach(it)));
+
+    EXPECT_EQ(1, toCheck.size());
+    EXPECT_EQ(4, mylist.size());
+    EXPECT_EQ(20, toCheck.pop_front());
 }
 /*
 TEST_F(FooTest, quick_sortOneElem)
