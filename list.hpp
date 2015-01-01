@@ -114,15 +114,6 @@ public:
         _tail->_prev = _head;
     }
 
-    /*
-    list(list && other)
-        : _head(other._head), _tail(other._tail), _size(other._size)
-    {
-        other._head = new node();
-        other._tail = new node();
-        other._head->_next = other._tail;
-    }*/
-
     list(list && other)
         : _head(new node()), _tail(new node()), _size(0)
     {
@@ -264,23 +255,10 @@ auto list<Value>::is_empty() const -> bool
 }
 
 //----push and pop front----------------
-/*template<typename Value>
-auto list<Value>::push_front(Value v) -> void
-{
-    node * nPtr = new node(_head, _head->_next, v);
-
-    _head->_next = nPtr;
-    nPtr->_next->_prev = nPtr;
-
-    ++_size;
-}*/
 
 template<typename Value>
 auto list<Value>::push_front(Value v) -> void
 {
-    if(_head==nullptr)throw std::logic_error("FUCK 1!!!");
-    if(_head->_next==nullptr)throw std::logic_error("FUCK 2!!!");
-
     node * nPtr = new node(v);
 
     nPtr->_next = _head->_next;
@@ -453,25 +431,6 @@ auto list<Value>::join_front(list<Value> && other) -> void
         _size += other._size;
     }
 }
-/*
-    if(is_empty())
-    {
-        _head= other._head;
-        _tail= other._tail;
-        _size= other._size;
-    }
-    else
-    {
-        other._tail->_next = _head;
-        _head->_prev = other.tail;
-        _head = other._head;
-        _size += other.size();
-    }
-
-    other._tail=nullptr;
-    other._size=0;
-    other._head=nullptr;
-}*/
 
 template<typename Value>
 auto list<Value>::join_back(list<Value> && other) -> void
@@ -493,15 +452,6 @@ auto list<Value>::join_back(list<Value> && other) -> void
         _tail->_prev = tmpTail;
         //4. Resize:
         _size += other._size;
-
-        /*other._head->_next->_prev = _tail->_prev;
-        other._tail->_prev->_next = _tail;
-
-        _tail->_prev->_next = other._head->_next;
-        _tail->_prev = other._tail->_prev;
-
-        other._head->_next = other._tail;
-        _size += other._size;*/
     }
 }
 
@@ -522,25 +472,6 @@ auto list<Value>::detach(list<Value>::iterator it) -> list<Value>
         return std::move(list<Value>(toRe));
     }
 }
-/*    if(is_empty())
-    {
-        _head=other._head;
-        _tail = other._tail;
-        _size = other.size();
-    }
-    else
-    {
-        _tail->_next = other._head;
-        other._head->_prev = _tail;
-        _tail = other._tail;
-
-        _size += other.size();
-    }
-
-    other._tail=nullptr;
-    other._size=0;
-    other._head=nullptr;
-}*/
 
 
 template<typename Value>
@@ -560,79 +491,6 @@ auto list<Value>::detach_head() -> list<Value>
         return std::move(list<Value>(toRe));
     }
 }
-
-    /*
-    node * tmp;
-
-    if(this->is_empty())
-    {
-        return list();
-    }
-    else
-    {
-        tmp=_head;
-
-        if(this->size()==1)
-        {
-            _head=nullptr;
-            _tail=nullptr;
-        }
-        else
-        {
-            _head->_next->_prev = nullptr;
-            _head=_head->_next;
-        }
-        _size = _size - 1;
-        tmp->_next=nullptr;
-    }
-    return std::move(list(tmp));
-}*/
-
-
-/*template<typename Value>
-auto list<Value>::detach_half() -> list<Value>
-{
-    node * tmp;
-    node * prevtmp;
-    node * tmptail;
-
-    int tmpsize= _size;
-
-    if(this->is_empty() || this->size()==1)
-    {
-        return list();
-    }
-    else if(size()==2)
-    {
-        _head->_next=nullptr;
-        tmp=_tail;
-        _tail=nullptr;
-
-        return list(tmp);
-    }
-    else
-    {
-        prevtmp=_head;
-        tmp=_head->_next;
-
-        int half = size()%2 + size()/2;
-
-        for(int i=1; i<half; ++i)
-        {
-            tmp=tmp->_next;
-            prevtmp=prevtmp->_next;
-        }
-
-
-        tmptail=_tail;
-
-        _tail=prevtmp;
-        _tail->_next=nullptr;
-        _size=half;
-
-        return list(tmp, tmptail, tmpsize-half);
-     }
-}*/
 
 
 
